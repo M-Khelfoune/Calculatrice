@@ -5,4 +5,9 @@ package com.kmourad.calculatrice;
  */
 
 public class Compute {
+    int currentValue = 0;
+
+    public void onClikedNumber(int number){
+
+    }
 }

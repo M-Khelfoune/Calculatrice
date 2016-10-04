@@ -2,6 +2,7 @@ package com.kmourad.calculatrice;
 
 import org.junit.Test;
 
+import static android.R.attr.value;
 import static org.junit.Assert.*;
 
 /**
@@ -12,6 +13,21 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() throws Exception {
-        assertEquals(4, 2 + 2);
+        Compute compute = new Compute();
+        compute.onClearClikedValue();     // 0
+        compute.onNumberClicked(2);       // 2
+        compute.onMultiplyCliked();       // *
+        compute.onNumberCliked(3);        // 3
+        value = compute.onEqualCliked();  // 6
+        compute.onDivideCliked();         // /
+        compute.onClikedNumber(2);        // 2
+        value = compute.onEqualCliked();  // 3
+        compute.onAddCliked();            // +
+        compute.onClikedNumber(1);        // 1
+        value = compute.onEqualCliked();  // 4
+        compute.onMinusCliked();          // -
+        compute.onClikedNumber(2);        // 2
+        value = compute.onEqualCliked();  // 2
+        assertEquals(2, value);
     }
 }
