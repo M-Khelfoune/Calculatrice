@@ -36,71 +36,95 @@ public class Compute {
         return st.toString();
     }
 
+    private boolean readNumbers(char key){
+        if (operationExecuted) {
+            currentValue = "0";
+            operationExecuted = false;
+            operationType = '=';
+        }
+        if ((currentValue.length() == 1) && (currentValue.charAt(0) == '0')) {
+            currentValue = "";
+        }
+        if (operationCliked) {
+            currentValue = String.valueOf(key);
+            operationCliked = false;
+        } else {
+            currentValue = currentValue + key;
+        }
+        return true;
+    }
+
+    private  boolean setClear(){
+        currentValue = "0";
+        operationCliked = false;
+        operationType = '=';
+        return true;
+    }
+
+    private boolean acceptedVirgule(){
+        if ((!operationCliked) && (currentValue.indexOf('.') == -1)) {
+            currentValue = currentValue + '.';
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean setOperation(char key){
+        operationExecuted = false;
+        operationCliked = true;
+        operationType = key;
+        firstOperande = Double.parseDouble(currentValue);
+        return true;
+    }
+
+    private boolean runOperation(){
+        boolean retour = false;
+        if (!operationExecuted) {
+            secondOperande = Double.parseDouble(currentValue);
+        }
+        if (!((operationType == '/') && (secondOperande == 0))) {
+            if (operationType == '/') {
+                firstOperande = firstOperande / secondOperande;
+            }
+            if (operationType == '*') {
+                firstOperande = firstOperande * secondOperande;
+            }
+            if (operationType == '-') {
+                firstOperande = firstOperande - secondOperande;
+            }
+            if (operationType == '+') {
+                firstOperande = firstOperande + secondOperande;
+            }
+            currentValue = String.valueOf(firstOperande);
+            operationExecuted = true;
+            retour = true;
+        }
+        return retour;
+    }
+
     public boolean onKeyClikedIsValid(String keyCliked) {
         char key = keyCliked.charAt(0);
         boolean retour = false;
         // saisie des nombres au fure et à mesure
         if ((key >= '0') && (key <= '9')) {
-            if (operationExecuted) {
-                currentValue = "0";
-                operationExecuted = false;
-                operationType = '=';
-            }
-            if ((currentValue.length() == 1) && (currentValue.charAt(0) == '0')) {
-                currentValue = "";
-            }
-            if (operationCliked) {
-                currentValue = String.valueOf(key);
-                operationCliked = false;
-            } else {
-                currentValue = currentValue + key;
-            }
-            retour = true;
+            retour = readNumbers(key);
         }
         // touche clear pressé, efface toute operation ds un premier temps
         if (key == 'C') {
-            currentValue = "0";
-            operationCliked = false;
-            operationType = '=';
-            retour = true;
+            retour = setClear();
         }
         // touche virgule pressé, n'autorise qu'une seul, retour = false par defaut.
         if (key == ',') {
-            if ((!operationCliked) && (currentValue.indexOf('.') == -1)) {
-                currentValue = currentValue + '.';
-                return true;
-            }
+            retour = acceptedVirgule();
         }
         // touche operation type selectionné, l'actuel ecrase la précédente
         if ((key == '/') || (key == '*') || (key == '-') || (key == '+')) {
-            operationExecuted = false;
-            operationCliked = true;
-            operationType = key;
-            firstOperande = Double.parseDouble(currentValue);
-            retour = true;
+            retour = setOperation(key);
         }
         // demande d'execution de l'opération, retour = false par defaut
         if (key == '=') {
-            if (!operationExecuted) {
-                secondOperande = Double.parseDouble(currentValue);
-            }
-            if (!((operationType == '/') && (secondOperande == 0))) {
-                if (operationType == '/') {
-                    firstOperande = firstOperande / secondOperande;
-                }
-                if (operationType == '*') {
-                    firstOperande = firstOperande * secondOperande;
-                }
-                if (operationType == '-') {
-                    firstOperande = firstOperande - secondOperande;
-                }
-                if (operationType == '+') {
-                    firstOperande = firstOperande + secondOperande;
-                }
-                currentValue = String.valueOf(firstOperande);
-                operationExecuted = true;
-                retour = true;
-            }
+            retour = runOperation();
         }
         return retour;
     }
