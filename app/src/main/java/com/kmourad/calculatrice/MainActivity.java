@@ -11,20 +11,23 @@ import org.w3c.dom.Text;
 import static android.R.attr.tag;
 
 public class MainActivity extends AppCompatActivity {
-    static int valueShow = 0;
+    static String valueShow = "0";
+    Compute compute = new Compute();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TextView textView = (TextView) findViewById(R.id.EditText01);
-        textView.setText(""+valueShow);
+        textView.setText(valueShow);
     }
 
     public void onButtonClicked(View view){
         Button button = (Button) view;
         TextView textView = (TextView) findViewById(R.id.EditText01);
-        textView.setText(button.getTag().toString());
-       // valueShow = Integer.parseInt(textView.getText().toString());
+        if (compute.onKeyClikedIsValid(button.getTag().toString())) {
+            valueShow = compute.getCurrentValue();
+            textView.setText(valueShow);
+        }
     }
 }
