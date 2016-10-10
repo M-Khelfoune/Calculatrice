@@ -6,28 +6,50 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import static android.R.attr.tag;
-
 public class MainActivity extends AppCompatActivity {
-    static String valueShow = "0";
-    Compute compute = new Compute();
+    static Compute compute = new Compute();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         TextView textView = (TextView) findViewById(R.id.EditText01);
-        textView.setText(valueShow);
+        textView.setText(compute.getCurrentValue());
     }
 
-    public void onButtonClicked(View view){
+    public void onButtonClicked(View view) {
         Button button = (Button) view;
         TextView textView = (TextView) findViewById(R.id.EditText01);
-        if (compute.onKeyClikedIsValid(button.getTag().toString())) {
-            valueShow = compute.getCurrentValue();
-            textView.setText(valueShow);
-        }
+        compute.onKeyClikedIsValid(button.getTag().toString());
+        textView.setText(compute.getCurrentValue());
     }
+
+
+    private void sortInputButton(String keyCliked) {
+        char key = keyCliked.charAt(0);
+        if ((key >= '0') && (key <= '9')) {
+            compute.readNumbers(key);
+        }
+        if (key == 'C') {
+            compute.setClear();
+        }
+        if (key == ',') {
+            compute.acceptedComma();
+        }
+        if ((key == '/') || (key == '*') || (key == '-') || (key == '+')) {
+            compute.setOperation(key);
+        }
+        if (key == '=') {
+            compute.runOperation();
+        }
+        if (key == 'D') {
+            compute.setBackspace();
+        }
+        if (key == 'E') {
+            compute.setClearCurrent();
+        }
+
+
+    }
+
 }

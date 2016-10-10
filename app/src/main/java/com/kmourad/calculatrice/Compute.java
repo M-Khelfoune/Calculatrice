@@ -1,46 +1,43 @@
 package com.kmourad.calculatrice;
 
-import static android.R.attr.breadCrumbShortTitle;
-import static android.R.attr.cursorVisible;
-import static android.R.attr.value;
-
-/**
- * Created by Human Booster on 04/10/2016.
- */
 
 public class Compute {
-    // Ajouter backspace
-    // Ajouter clear second operande or operande current.
-    private String currentValue = "0"; // remplissage avant operation clicked
-    private double firstOperande = 0;  // reçoit la valeur de currentValue si op cliked;
-    private double secondOperande = 0; // réçoit la valeur de curreentValue si = clicked;
-    private boolean operationCliked = false; // démarre saisie de la 2 opérande
+    private String currentValue = "0";   // input the numbers
+    private double firstOperande = 0;     // first value operande
+    private double secondOperande = 0;     // second value operande
+    private boolean operationCliked = false; // start reading 2nd opérande
     private boolean operationExecuted = false;
-    private char operationType = '=';   // identifie le type de l'opération demandé.
+    private char operationType = '=';   // last type of operation.
+    private boolean errorDivideByZero = false;
 
     public String getCurrentValue() {
-        // manque precision nb chiffre aprés virgule par defaut.
-        // ici on peut presenter un format affichage comme : 12 + 6
-        int idx = 0;
-        StringBuilder st = new StringBuilder(currentValue);
-        idx = currentValue.indexOf('.');
-        if (idx >= 0) {
-            st.replace(idx, idx + 1, ",");
-            while ((st.length() > idx) && (st.charAt(st.length() - 1) == '0')) {
-                st.deleteCharAt(st.length() - 1);
-            }
-            if (st.charAt(st.length() - 1) == ',') {
-                st.deleteCharAt(st.length() - 1);
-            }
+        if (errorDivideByZero) {
+            return "Division par 0 non admise !";
+        } else {
+            return getFormatString(currentValue);
         }
-        return st.toString();
     }
 
-    private boolean readNumbers(char key){
-        if (operationExecuted) {
-            currentValue = "0";
-            operationExecuted = false;
-            operationType = '=';
+    private String stripLastPlotZero(char key, String toStrip){
+        String theKey = toStrip;
+        if ((toStrip.length() > 2) &&
+                (toStrip.charAt(toStrip.length() - 2) == key) &&
+                (toStrip.charAt(toStrip.length() - 1) == '0')) {
+            theKey = toStrip.substring(0, toStrip.length()-2);
+        }
+        return theKey;
+    }
+
+    protected String getFormatString(String toShow) {
+        String returnThis;
+        returnThis = toShow.replace('.', ',');
+        returnThis = stripLastPlotZero(',', returnThis);
+        return returnThis;
+    }
+
+    protected void readNumbers(char key) {
+        if (errorDivideByZero || operationExecuted) {
+            setClear();
         }
         if ((currentValue.length() == 1) && (currentValue.charAt(0) == '0')) {
             currentValue = "";
@@ -49,83 +46,96 @@ public class Compute {
             currentValue = String.valueOf(key);
             operationCliked = false;
         } else {
-            currentValue = currentValue + key;
+            currentValue += Character.toString(key);
         }
-        return true;
     }
 
-    private  boolean setClear(){
+    protected void setClear() {
         currentValue = "0";
         operationCliked = false;
+        operationExecuted = false;
         operationType = '=';
-        return true;
+        errorDivideByZero = false;
     }
 
-    private boolean acceptedVirgule(){
+    protected void acceptedComma() {
         if ((!operationCliked) && (currentValue.indexOf('.') == -1)) {
             currentValue = currentValue + '.';
-            return true;
-        } else {
-            return false;
         }
     }
 
-    private boolean setOperation(char key){
+    protected void setOperation(char key) {
+        // operationType { /, *, +, -, }
+        if (!(operationType == '=') && (operationExecuted)) {
+            runOperation();
+        }
         operationExecuted = false;
         operationCliked = true;
         operationType = key;
         firstOperande = Double.parseDouble(currentValue);
-        return true;
     }
 
-    private boolean runOperation(){
-        boolean retour = false;
+    protected void runOperation() {
+        if (errorDivideByZero) {
+            setClear();
+        }
         if (!operationExecuted) {
             secondOperande = Double.parseDouble(currentValue);
         }
-        if (!((operationType == '/') && (secondOperande == 0))) {
-            if (operationType == '/') {
-                firstOperande = firstOperande / secondOperande;
-            }
-            if (operationType == '*') {
-                firstOperande = firstOperande * secondOperande;
-            }
-            if (operationType == '-') {
-                firstOperande = firstOperande - secondOperande;
-            }
-            if (operationType == '+') {
-                firstOperande = firstOperande + secondOperande;
-            }
-            currentValue = String.valueOf(firstOperande);
-            operationExecuted = true;
-            retour = true;
+        if (operationType == '/') {
+            firstOperande = firstOperande / secondOperande;
+            errorDivideByZero = Double.isInfinite(firstOperande);
         }
-        return retour;
+        if (operationType == '*') {
+            firstOperande = firstOperande * secondOperande;
+        }
+        if (operationType == '-') {
+            firstOperande = firstOperande - secondOperande;
+        }
+        if (operationType == '+') {
+            firstOperande = firstOperande + secondOperande;
+        }
+        currentValue = String.valueOf(firstOperande);
+        operationExecuted = true;
+        operationType = '=';
     }
 
-    public boolean onKeyClikedIsValid(String keyCliked) {
+    protected void setBackspace() {
+        currentValue = stripLastPlotZero('.', currentValue);
+        if ((currentValue.length()==1) && (currentValue.charAt(0)!='0')){
+            currentValue = "0";
+        }
+        if (currentValue.length()>1) {
+            currentValue = currentValue.substring(0, currentValue.length()-1);
+        }
+    }
+
+    protected void setClearCurrent() {
+        currentValue = "0";
+    }
+
+    public void onKeyClikedIsValid(String keyCliked) {
         char key = keyCliked.charAt(0);
-        boolean retour = false;
-        // saisie des nombres au fure et à mesure
         if ((key >= '0') && (key <= '9')) {
-            retour = readNumbers(key);
+            readNumbers(key);
         }
-        // touche clear pressé, efface toute operation ds un premier temps
         if (key == 'C') {
-            retour = setClear();
+            setClear();
         }
-        // touche virgule pressé, n'autorise qu'une seul, retour = false par defaut.
         if (key == ',') {
-            retour = acceptedVirgule();
+            acceptedComma();
         }
-        // touche operation type selectionné, l'actuel ecrase la précédente
         if ((key == '/') || (key == '*') || (key == '-') || (key == '+')) {
-            retour = setOperation(key);
+            setOperation(key);
         }
-        // demande d'execution de l'opération, retour = false par defaut
         if (key == '=') {
-            retour = runOperation();
+            runOperation();
         }
-        return retour;
+        if (key == 'D') {
+            setBackspace();
+        }
+        if (key == 'E') {
+            setClearCurrent();
+        }
     }
 }
